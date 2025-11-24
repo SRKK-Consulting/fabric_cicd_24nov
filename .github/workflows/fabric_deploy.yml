@@ -1,0 +1,68 @@
+name: Deploy Fabric Items
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: # Allows manual triggering
+
+permissions:
+  id-token: write
+  contents: read
+
+# Environment variables used by DefaultAzureCredential in Python
+env:
+  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+
+jobs:
+  # ---------------------------------------------------
+  # Job 1: Deploy to Pre-Production (PPE)
+  # ---------------------------------------------------
+  deploy-ppe:
+    runs-on: ubuntu-latest
+    environment: PPE # Links to GitHub Environment for secrets/approvals
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Deploy to PPE
+        run: |
+          python deploy_with_fabric.py \
+            --workspace_id "${{ vars.FABRIC_WORKSPACE_ID_PPE }}" \
+            --environment "PPE" \
+            --repo_path "./src"
+
+  # ---------------------------------------------------
+  # Job 2: Deploy to Production (PROD)
+  # ---------------------------------------------------
+  deploy-prod:
+    needs: deploy-ppe # Only runs if PPE succeeds
+    runs-on: ubuntu-latest
+    environment: PROD # Use this for manual approval gates
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Deploy to PROD
+        run: |
+          python deploy_with_fabric.py \
+            --workspace_id "${{ vars.FABRIC_WORKSPACE_ID_PROD }}" \
+            --environment "PROD" \
+            --repo_path "./src"

@@ -1,0 +1,48 @@
+# parameter.yml
+# Fabric CI/CD Configuration for PPE and PROD
+
+# ---------------------------------------------------------
+# Find & Replace Rules
+# ---------------------------------------------------------
+find_replace:
+
+  # -------------------------------------------------------
+  # 1. NOTEBOOK REBINDING
+  # -------------------------------------------------------
+  # Updates the "Default Lakehouse" pinned in the Notebook UI.
+  # Matches the specific JSON format in the .ipynb definition.
+  - find_value: \#\s*META\s+"default_lakehouse":\s*"([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})"
+    is_regex: "true"
+    item_type: "Notebook"
+    replace_value:
+      # Dynamically finds the ID of the 'Sales_Lakehouse' deployed in the current environment
+      PPE: "$items.Lakehouse.Sales_Lakehouse.$id"
+      PROD: "$items.Lakehouse.Sales_Lakehouse.$id"
+
+  # Updates the Workspace ID associated with that Lakehouse.
+  - find_value: \#\s*META\s+"default_lakehouse_workspace_id":\s*"([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})"
+    is_regex: "true"
+    item_type: "Notebook"
+    replace_value:
+      # Dynamically injects the ID of the target workspace (PPE or PROD)
+      PPE: "$workspace.$id"
+      PROD: "$workspace.$id"
+
+  # -------------------------------------------------------
+  # 2. SEMANTIC MODEL REBINDING
+  # -------------------------------------------------------
+  # If your Semantic Model uses the SQL Endpoint, we replace the Server address.
+  # Example: Replacing the Dev SQL Endpoint with the PPE/PROD SQL Endpoints.
+  # NOTE: You must obtain the SQL Endpoint strings from the Fabric UI for your PPE/PROD Lakehouses.
+  - find_value: "x5k3...datawarehouse.fabric.microsoft.com" # <--- Your DEV Lakehouse SQL Endpoint
+    item_type: "SemanticModel"
+    replace_value:
+      PPE: "ppesql...datawarehouse.fabric.microsoft.com"    # <--- Your PPE Lakehouse SQL Endpoint
+      PROD: "prodsql...datawarehouse.fabric.microsoft.com"  # <--- Your PROD Lakehouse SQL Endpoint
+
+  # Rebind the Database Name (often the Lakehouse ID or Name)
+  - find_value: "Sales_Lakehouse_Dev_Name_Or_GUID"
+    item_type: "SemanticModel"
+    replace_value:
+      PPE: "Sales_Lakehouse" 
+      PROD: "Sales_Lakehouse"

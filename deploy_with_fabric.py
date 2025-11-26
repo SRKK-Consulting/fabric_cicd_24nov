@@ -22,7 +22,7 @@ def main():
         workspace_id=args.workspace_id,
         repository_directory=args.repo_path,
         environment=args.environment,
-        item_type_in_scope=["Lakehouse", "Notebook", "SemanticModel"]
+        item_type_in_scope=["Lakehouse", "Notebook"]
     )
 
     # 2. Publish Items

@@ -13,7 +13,7 @@ def main():
     print(f"\n=== Fabric CI/CD Deployment ===")
     print(f"Target:      {args.workspace_id}")
     print(f"Environment: {args.environment}")
-    print(f"Scope:       Lakehouse, Notebook, Semantic Model")
+    print(f"Scope:       Lakehouse, Notebook")
 
     # 1. Initialize Workspace
     # We explicitly define item_type_in_scope to strictly maintain only your design items.
